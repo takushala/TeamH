@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<!--/* Title of this template will be passed to the head fragment along with custom links and scripts */-->
+<head >
+    <title>Shop List</title>
+    <link type="text/css" rel="stylesheet" href="/css/jquery.dataTables.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/dataTables.bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/bootstrap-select.min.css" />
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/js/shop.js"></script>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+    <h1>SHOP ID :<span th:text="${id}"></span></h1>
+    <div id="emp-list">
+        Employee List
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>Name</td>
+                <td>Active</td>
+                <td>Role</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${employees.empty}">
+                <td colspan="3">No employees</td>
+            </tr>
+            <tr th:each="employee : ${employees}">
+                <td th:text="${employee.getAccount().getName()}">1</td>
+                <td th:text="${employee.getAccount().isActive()}">Active ...</td>
+                <td th:text="${employee.getAccount().getRole()}">Emp_name ...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary 1st">Inventory</button>
+            <button type="button" class="btn btn-primary 2nd">Import History</button>
+            <button type="button" class="btn btn-primary 3rd">Sales</button>
+        </div>
+        <table class = "filter" border="0" cellspacing="5" cellpadding="5">
+            <tbody><tr>
+                <td>From date:</td>
+                <td><input type="text" id="min" name="min"></td>
+            </tr>
+            <tr>
+                <td>To date:</td>
+                <td><input type="text" id="max" name="max"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="inventory">
+        Inventory
+        <table id="inventory-list" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>Shop ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Price</td>
+                <td>Quantity</td>
+                <td>
+                    <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-plus" data-toggle="modal" data-target="#addItem" >
+                    </button>
+
+                    <div id="addItem" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Add new item </h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form id ="additem" th:action="@{/api/inventory/{id} (id=${shop_id})}" method="post">
+                                        <div class="form-group">
+                                            <label for="itembarcode" >Item barcode:</label>
+                                            <select class="form-control selectpicker" required="required" id="itembarcode" name ="barcode" data-live-search="true">
+                                                <option th:each="item : ${items}" th:value="${item.code}" th:text="${item.code}"></option>
+
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="itemquantity">Quantity:</label>
+                                            <input type="text" class="form-control" required="required" id ="itemquantity" name ="quantity"  >
+                                        </div>
+
+
+                                        <button type="submit" class="btn btn-default">Add</button>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div></td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${inventories.empty}">
+                <td colspan="7">EMPTY</td>
+            </tr>
+            <tr th:each="inven : ${inventories}">
+                <td th:text="${inven.id.shop.id}">1</td>
+                <td th:text="${inven.id.item.code}">Active ...</td>
+                <td th:text="${inven.id.item.name}">Emp_name ...</td>
+                <td th:text="${inven.id.item.category}">Emp_name ...</td>
+                <td th:text="${inven.id.item.price}">Emp_name ...</td>
+                <td th:text="${inven.quantity}">Emp_name ...</td>
+                <td></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td>Shop ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Price</td>
+                <td>Quantity</td>
+                <td></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class = "import" >
+        Import History
+        <table id="import-list" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Imported by</td>
+                <td>Price</td>
+                <td>Shop ID</td>
+                <td>Date</td>
+                <td>Quantity</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${sales.empty}">
+                <td colspan="9">No Sales</td>
+            </tr>
+            <tr th:each="import : ${imports}">
+                <td th:text="${import.id}">1</td>
+                <td th:text="${import.item.code}">Active ...</td>
+                <td th:text="${import.item.name}">Emp_name ...</td>
+                <td th:text="${import.item.category}">Emp_name ...</td>
+                <td th:text="${import.account.username}">Emp_name ...</td>
+                <td th:text="${import.item.price}">Emp_name ...</td>
+                <td th:text="${import.shop.id}">Emp_name ...</td>
+                <td th:text="${import.imp_date}">Emp_name ...</td>
+                <td th:text="${import.quantity}">Emp_name ...</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td>ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Imported by</td>
+                <td>Price</td>
+                <td>Shop ID</td>
+                <td>Date</td>
+                <td>Quantity</td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="sale" >
+        Sales
+        <table id="sale-list" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Employee</td>
+                <td>Price</td>
+                <td>Shop ID</td>
+                <td>Date</td>
+                <td>Quantity</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${sales.empty}">
+                <td colspan="9">No Sales</td>
+            </tr>
+            <tr th:each="sale : ${sales}">
+                <td th:text="${sale.id}">1</td>
+                <td th:text="${sale.item.code}">Active ...</td>
+                <td th:text="${sale.item.name}">Emp_name ...</td>
+                <td th:text="${sale.item.category}">Emp_name ...</td>
+                <td th:text="${sale.account.username}">Emp_name ...</td>
+                <td th:text="${sale.item.price}">Emp_name ...</td>
+                <td th:text="${sale.shop.id}">Emp_name ...</td>
+                <td th:text="${sale.exp_date}">Emp_name ...</td>
+                <td th:text="${sale.quantity}">Emp_name ...</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td>ID</td>
+                <td>Barcode</td>
+                <td>Item name</td>
+                <td>Category</td>
+                <td>Employee</td>
+                <td>Price</td>
+                <td>Shop ID</td>
+                <td>Date</td>
+                <td>Quantity</td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

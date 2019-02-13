@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Sign In</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:if="${message != null}">
+        <div th:replace="alert :: alert (type=${#strings.toLowerCase(message.type)}, message=${message.message})">;</div>
+    </th:block>
+</div>
+
+</body>
+</html>

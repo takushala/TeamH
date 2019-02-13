@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head >
+    <title>Admin Page</title>
+    <link type="text/css" rel="stylesheet" href="/css/jquery.dataTables.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/dataTables.bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/bootstrap-select.min.css" />
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/js/dataTables.bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#shop-list').DataTable({
+                "columnDefs": [{ "targets": [2], "searchable": false, "orderable": false, "visible": true }]
+            });
+            $('#emp-list').DataTable({
+                "columnDefs": [{ "targets": [4], "searchable": false, "orderable": false, "visible": true }]
+            });
+        } );
+    </script>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+    <div class="row">
+        <div class="col-sm-5">
+            <th:block th:if="${messageshop != null}">
+                <div th:replace="alert :: alert (type=${#strings.toLowerCase(messageshop.type)}, message=${messageshop.message})">;</div>
+            </th:block>
+            <table id="shop-list" class="table table-bordered table-striped ">
+                <thead>
+                <tr>
+                    <td class = "col-sm-2">ID</td>
+                    <td class = "col-sm-7">Name</td>
+                    <td class = "col-sm-3">
+                        <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-plus" data-toggle="modal" data-target="#createShop" >
+                        </button>
+
+                        <div id="createShop" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Create new shop : </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form th:action="@{/api/shop/}" method="post">
+                                            <div class="form-group">
+                                                <label >Name:</label>
+                                                <input type="text" class="form-control" required="required" name ="name"  >
+                                            </div>
+
+
+                                            <button type="submit" class="btn btn-default">Create</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${shops.empty}">
+                    <td colspan="3">No shops</td>
+                </tr>
+                <tr th:each="shop : ${shops}">
+                    <td th:text="${shop.id}">1</td>
+                    <td>
+                        <a href="#" th:href="@{/admin/shops/{id}(id=${shop.id})}" th:text="${shop.name}">Name ...</a>
+                    </td>
+                    <td>
+                        <button type="button" class="btn" data-toggle="modal" th:attr ="data-target='#shopEditModal'+${shop.id}"/>
+                        <i class="glyphicon glyphicon-pencil"></i>
+                        </button>
+
+                        <div th:id="'shopEditModal'+${shop.id}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title"th:text="'Shop ID:'+${shop.id}">Shop ID : </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form th:action="@{/api/shop/edit/{id}(id=${shop.id})}" method="post">
+
+                                            <div class="form-group">
+                                                <label for="name">Name:</label>
+                                                <input type="text" class="form-control" required="required" id="name" name ="name" th:placeholder="${shop.name}" >
+                                            </div>
+                                            <button type="submit" class="btn btn-default">Submit</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn" data-toggle="modal" th:attr ="data-target='#shopDelModal'+${shop.id}">
+                            <i class="glyphicon glyphicon-trash"></i>
+                        </button>
+
+                        <div th:id="'shopDelModal'+${shop.id}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title"th:text="'Shop ID:'+${shop.id}">Shop ID : </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <h4 class="modal-title">Do you really want to delete this shop? </h4>
+                                        <form th:action="@{/api/shop/delete/{id}(id=${shop.id})}" method="post">
+
+                                            <button type="submit" class="btn btn-default">Yes</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-7">
+            <th:block th:if="${messageemp != null}">
+                <div th:replace="alert :: alert (type=${#strings.toLowerCase(messageemp.type)}, message=${messageemp.message})">;</div>
+            </th:block>
+            <table id="emp-list" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <td>Username</td>
+                    <td>Name</td>
+                    <td>Shop ID</td>
+                    <td>Shop name</td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-plus" data-toggle="modal" data-target="#empCreateModal"/>
+                        </button>
+
+                        <div th:id="empCreateModal" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Create new employee: </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form th:action="@{/api/employee/create}" method="post">
+
+                                            <div class="form-group">
+                                                <label for="name">Employee:</label>
+                                                <select class="form-control selectpicker" id="sel1" name ="username" data-live-search="true">
+                                                    <option th:each="account : ${availableAccount}" th:value="${account.username}" th:text="${account.username}"></option>
+
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="sel1">Shops ID:</label>
+                                                <select class="form-control selectpicker" id="sel1" name ="shop_id" data-live-search="true">
+                                                    <option th:each="shop : ${shops}" th:value="${shop.id}" th:text="${shop.id}"></option>
+
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-default">Submit</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${employees.empty}">
+                    <td colspan="5">No employees</td>
+                </tr>
+                <tr th:each="employee : ${employees}">
+                    <td th:text="${employee.account.username}">1</td>
+                    <td th:text="${employee.account.name}">1</td>
+                    <td th:text="${employee.shop.id}">Emp_name ...</td>
+                    <td th:text="${employee.shop.name}">Shop</td>
+                    <td>
+                        <button type="button" class="btn" data-toggle="modal" th:attr ="data-target='#empEditModal'+${employee.username}"/>
+                        <i class="glyphicon glyphicon-pencil"></i>
+                        </button>
+
+                        <div th:id="'empEditModal'+${employee.username}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title"th:text="'Employee:'+${employee.username}">Shop ID : </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form th:action="@{/api/employee/edit/{username}(username=${employee.username})}" method="post">
+
+                                            <div class="form-group">
+                                                <label for="name">Name:</label>
+                                                <input type="text" class="form-control" required="required" id="name" name ="name" th:placeholder="${employee.account.name}" >
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="sel1">Shops ID:</label>
+                                                <select class="form-control" id="sel1" name ="shop_id">
+                                                    <option th:each="shop : ${shops}" th:value="${shop.id}" th:text="${shop.id}"></option>
+
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-default">Submit</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn" data-toggle="modal" th:attr ="data-target='#empDelModal'+${employee.username}">
+                            <i class="glyphicon glyphicon-trash"></i>
+                        </button>
+
+                        <div th:id="'empDelModal'+${employee.username}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title"th:text="'Employee:'+${employee.username}">Shop ID : </h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <h4 class="modal-title">Do you really want to delete this employee? </h4>
+                                        <form th:action="@{/api/employee/delete/{username}(username=${employee.username})}" method="post">
+
+                                            <button type="submit" class="btn btn-default">Yes</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+</body>
+
+
+</html>

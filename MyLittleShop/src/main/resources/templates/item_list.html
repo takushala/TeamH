@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head >
+    <title>Item List</title>
+    <link type="text/css" rel="stylesheet" href="/css/jquery.dataTables.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/dataTables.bootstrap.min.css" />
+    <script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#add').validate({ // initialize the plugin
+                rules: {
+                    price: {
+                        required: true,
+                        digits: true
+                    },
+                    barcode: {
+                        required: true,
+                        maxlength: 20
+                    }
+                }
+            });
+            $(".formValidate").validate();
+            $(".priceValidate").rules("add", {
+                required:true,
+                digits:true
+            });
+            $('#item-list').DataTable({
+                initComplete: function () {
+                    this.api().columns([0,1,2,3]).every( function () {
+                        var column = this;
+                        var select = $('<select><option value=""></option></select>')
+                            .appendTo( $(column.footer()).empty() )
+                            .on( 'change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search( val ? '^'+val+'$' : '', true, false )
+                                    .draw();
+                            } );
+
+                        column.data().unique().sort().each( function ( d, j ) {
+                            select.append( '<option value="'+d+'">'+d+'</option>' )
+                        } );
+                    } );
+                },
+                "columnDefs": [{ "targets": [4], "searchable": false, "orderable": false, "visible": true }]
+            });
+        } );
+    </script>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+    <th:block th:if="${message != null}">
+        <div th:replace="alert :: alert (type=${#strings.toLowerCase(message.type)}, message=${message.message})">;</div>
+    </th:block>
+    <table id="item-list" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <td>Barcode</td>
+                <td>Name</td>
+                <td>Category</td>
+                <td>Price</td>
+                <td>
+                    <button sec:authorize="hasRole('ROLE_MANAGER')" type="button" class="btn btn-default btn-sm glyphicon glyphicon-plus" data-toggle="modal" data-target="#itemCreateModal"/>
+                    </button>
+
+                    <div id="itemCreateModal" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Create new Item: </h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="add" th:action="@{/api/item/create}"  method="post">
+
+                                        <div class="form-group">
+                                            <label>Barcode:</label>
+                                            <input type="text" class="form-control" id="barcode" required="required" name ="code"  >
+
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Item name:</label>
+                                            <input type="text" class="form-control" id="name" required="required" name ="name"  >
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Category:</label>
+                                            <input type="text" class="form-control" id ="category" required="required" name ="category"  >
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Price:</label>
+                                            <input type="text" class="form-control" id ="price" required="required" name ="price"  >
+                                        </div>
+                                        <button type="submit" class="btn btn-default">Submit</button>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${items.empty}">
+                <td colspan="5">Items</td>
+            </tr>
+            <tr th:each="item : ${items}">
+                <td th:text="${item.code}">1</td>
+                <td th:text="${item.name}">Name ...</td>
+                <td th:text="${item.category}">Category ...</td>
+                <td th:text="${item.price}">Price ...</td>
+                <td>
+                    <button sec:authorize="hasRole('ROLE_MANAGER')" type="button" class="btn btn-default glyphicon glyphicon-pencil" data-toggle="modal" th:attr ="data-target='#itemEditModal'+${item.code}"/>
+                    </button>
+
+                    <div th:id="'itemEditModal'+${item.code}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title"th:text="'Edit item, barcode:'+${item.code}">Shop ID : </h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="formValidate" th:action="@{/api/item/edit/{barcode}(barcode=${item.code})}" method="post">
+
+                                        <div class="form-group">
+                                            <label>Item name:</label>
+                                            <input type="text" class="form-control" required="required" name ="name" th:placeholder="${item.name}"  >
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Category:</label>
+                                            <input type="text" class="form-control" required="required" name ="category" th:placeholder="${item.category}"  >
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Price:</label>
+                                            <input type="text" class="form-control priceValidate" required="required" name ="price" th:placeholder="${item.price}"  >
+                                        </div>
+                                        <button type="submit" class="btn btn-default">Submit</button>
+
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <button sec:authorize="hasRole('ROLE_MANAGER')" type="button" class="btn btn-default glyphicon glyphicon-trash" data-toggle="modal" th:attr ="data-target='#itemDelModal'+${item.code}">
+                    </button>
+
+                    <div th:id="'itemDelModal'+${item.code}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title"th:text="'Delete item with barcode:'+${item.code}">Shop ID : </h4>
+                                </div>
+                                <div class="modal-body">
+                                    <h4 class="modal-title">Do you really want to delete this item? </h4>
+                                    <form th:action="@{/api/item/delete/{barcode}(barcode=${item.code})}" method="post">
+
+                                        <button type="submit" class="btn btn-default">Yes</button>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td>Barcode</td>
+            <td>Name</td>
+            <td>Category</td>
+            <td>Price</td>
+            <td></td>
+        </tr>
+        </tfoot>
+    </table>
+
+</div>
+
+</body>
+</html>
